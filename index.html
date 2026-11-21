@@ -172,7 +172,7 @@ function confirmLeave(cb){
   $('#mYes').onclick=()=>{$('#overlay').innerHTML='';inExam=false;cb()};
 }
 $('#menuBtn').onclick=()=>{
-  const items=[['Inicio',home],['Simulación de examen',simIntro],['Ensayo por materia',practiceSetup],['Definiciones legales',defsSetup],['Unir conceptos',matchStart],['Casos prácticos',casesSetup],['Mi progreso',progress]];
+  const items=[['Inicio',home],['Ensayo por materia',practiceSetup],['Definiciones legales',defsSetup],['Unir conceptos',matchStart],['Casos prácticos',casesSetup],['Mi progreso',progress]];
   $('#overlay').innerHTML=`<div class="drawer"><div class="bk" id="dBk"></div><nav><div class="dhead"><b>Examen de Grado</b><span>CIVIL · PROCESAL</span></div>${items.map((it,i)=>`<button class="ditem" data-i="${i}">${it[0]}</button>`).join('')}<div class="dfoot">Plataforma independiente de estudio. Contenido basado en apuntes de Derecho Civil y Procesal actualizados al 20/11/2026.<br>Comentarios: <a href="mailto:aymaradan@gmail.com">aymaradan@gmail.com</a></div></nav></div>`;
   $('#dBk').onclick=()=>$('#overlay').innerHTML='';
   document.querySelectorAll('.ditem').forEach(b=>b.onclick=()=>{$('#overlay').innerHTML='';confirmLeave(()=>go(items[b.dataset.i][1]))});
@@ -194,18 +194,17 @@ function home(){
   app.innerHTML=`<section class="hero"><h2>Examen de <span>Grado</span></h2><p>Ensaya · Practica · Aprueba</p>
   <div class="cnt"><div><b>${nC}</b><small>preguntas Civil</small></div><div><b>${nP}</b><small>preguntas Procesal</small></div><div><b>${DATA.defs.length}</b><small>definiciones</small></div><div><b>${DATA.cases.length}</b><small>casos</small></div></div></section>
   <section class="sheet"><div class="wrap"><div class="tiles">
-   ${tile('sim','clock','Simulación de examen',`${SIM_N} preguntas al azar de Civil y Procesal, en ${SIM_MIN} minutos. Resultados y nota al final.`,'30 min')}
    ${tile('prac','book','Ensayo por materia','Practica solo Civil o solo Procesal, por unidad, con la respuesta explicada al instante.')}
    ${tile('defs','quote','Definiciones legales','Repasa las definiciones textuales del Código Civil, del COT y del CPC, con su artículo.')}
    ${tile('match','link','Unir conceptos','Une 5 conceptos con sus 5 definiciones legales. Tócalos de a pares.')}
    ${tile('cases','scale','Casos prácticos','Lee un caso y elige cuál de las 3 soluciones es la correcta.')}
-   ${tile('prog','chart','Mi progreso','Tu porcentaje de aciertos por unidad y tus últimas simulaciones.')}
+   ${tile('prog','chart','Mi progreso','Tu porcentaje de aciertos por unidad y tus unidades más débiles.')}
   </div>
   <p class="notice">Plataforma independiente de estudio, sin vinculación con universidades ni con el Poder Judicial. Contenido basado en apuntes de Derecho Civil y Procesal actualizados al 20/11/2026; verifica siempre con el texto legal vigente.<br>Comentarios: <a href="mailto:aymaradan@gmail.com">aymaradan@gmail.com</a> · <a href="privacidad.html">Política de privacidad</a></p></div></section>`;
-  const map={sim:simIntro,prac:practiceSetup,defs:defsSetup,match:matchStart,cases:casesSetup,prog:progress};
+  const map={prac:practiceSetup,defs:defsSetup,match:matchStart,cases:casesSetup,prog:progress};
   document.querySelectorAll('.tile').forEach(t=>t.onclick=()=>go(map[t.dataset.k]));
 }
-function tile(k,ic,h,p,badge){return `<button class="tile${k==='sim'?' hl':''}" data-k="${k}">${badge?`<span class="badge">${badge}</span>`:''}<div class="ic">${IC[ic]}</div><div><h3>${h}</h3><p>${p}</p></div></button>`}
+function tile(k,ic,h,p,badge){return `<button class="tile${k==='prac'?' hl':''}" data-k="${k}">${badge?`<span class="badge">${badge}</span>`:''}<div class="ic">${IC[ic]}</div><div><h3>${h}</h3><p>${p}</p></div></button>`}
 
 /* ---------- motor de preguntas ---------- */
 // item: {area,unit,q,opts:[...],ok:idx,e,art,isDef}
@@ -286,26 +285,6 @@ function resultView(r,title,again){
   return {ok,n,pct,nota};
 }
 function grade(ok,n){if(!n)return 1;const p=ok/n;return p>=.6?4+3*(p-.6)/.4:1+3*p/.6}
-
-/* ---------- 1. simulación ---------- */
-function simIntro(){
-  setTitle('Simulación de examen');
-  app.innerHTML=`<div class="page"><div class="wrap"><div class="card"><h2>Simulación de examen de grado</h2>
-  <p>${SIM_N} preguntas de alternativas elegidas al azar: ${SIM_CIVIL} de Derecho Civil y ${SIM_N-SIM_CIVIL} de Derecho Procesal, de todas las unidades.</p>
-  <p>Tienes <b>${SIM_MIN} minutos</b>. Puedes avanzar y retroceder entre preguntas. Las respuestas correctas y las explicaciones se muestran al final. Si se acaba el tiempo, el examen se entrega automáticamente.</p>
-  <p class="small muted">La nota se calcula con una exigencia de 60%, en escala de 1,0 a 7,0.</p></div></div></div>`;
-  dock(`<button class="btn" id="go">Comenzar (${SIM_MIN}:00)</button>`);
-  $('#go').onclick=()=>{dock(null);startSim()};
-}
-function startSim(){
-  const c=shuffle(DATA.mcq.filter(q=>q.a==='C')).slice(0,SIM_CIVIL);
-  const p=shuffle(DATA.mcq.filter(q=>q.a==='P')).slice(0,SIM_N-SIM_CIVIL);
-  const items=shuffle(c.concat(p)).map(mkMCQ);
-  runQuiz(items,{title:'Simulación',exam:true,minutes:SIM_MIN,onEnd:r=>{
-    const res=resultView(r,'Resultado',simIntro);
-    ST.sims.unshift({d:new Date().toLocaleDateString('es-CL',{day:'2-digit',month:'2-digit',year:'numeric'}),ok:res.ok,n:res.n,nota:+res.nota.toFixed(1)});ST.sims=ST.sims.slice(0,10);save(ST);
-  }});
-}
 
 /* ---------- 2. ensayo por materia ---------- */
 let PS={area:'C',units:[],n:10};
@@ -414,12 +393,11 @@ function progress(){
    ${weak.length?`<div class="card"><h2>Para reforzar</h2><p class="muted small">Tus unidades con menor porcentaje de aciertos (mínimo 5 respuestas).</p>${weak.map(([u,s])=>`<p><b>${esc(u)}</b> · ${Math.round(s.ok*100/s.n)}%</p>`).join('')}</div>`:''}
    <div class="card"><h2>Civil</h2><table>${CIVIL_U.map(row).join('')}</table></div>
    <div class="card"><h2>Procesal</h2><table>${PROC_U.map(row).join('')}</table></div>
-   <div class="card"><h2>Últimas simulaciones</h2>${ST.sims.length?`<table><tr><th>Fecha</th><th>Puntaje</th><th>Nota</th></tr>${ST.sims.map(s=>`<tr><td>${s.d}</td><td>${s.ok}/${s.n}</td><td class="num">${String(s.nota.toFixed(1)).replace('.',',')}</td></tr>`).join('')}</table>`:'<p class="muted">Aún no has hecho simulaciones.</p>'}</div>
    <p class="notice">El progreso se guarda solo en este dispositivo.</p>
   </div></div>`;
   dock(`<button class="btn sec" id="rs">Borrar progreso</button><button class="btn" id="hm">Inicio</button>`);
   $('#hm').onclick=()=>go(home);
-  $('#rs').onclick=()=>{$('#overlay').innerHTML=`<div class="dim"><div class="modal"><h3>Borrar progreso</h3><p class="muted">Se eliminarán tus estadísticas y simulaciones guardadas en este dispositivo.</p><div class="row"><button class="btn light" id="mNo">Cancelar</button><button class="btn navy" id="mYes">Borrar</button></div></div></div>`;$('#mNo').onclick=()=>$('#overlay').innerHTML='';$('#mYes').onclick=()=>{$('#overlay').innerHTML='';ST={u:{},sims:[]};save(ST);progress()}};
+  $('#rs').onclick=()=>{$('#overlay').innerHTML=`<div class="dim"><div class="modal"><h3>Borrar progreso</h3><p class="muted">Se eliminarán tus estadísticas guardadas en este dispositivo.</p><div class="row"><button class="btn light" id="mNo">Cancelar</button><button class="btn navy" id="mYes">Borrar</button></div></div></div>`;$('#mNo').onclick=()=>$('#overlay').innerHTML='';$('#mYes').onclick=()=>{$('#overlay').innerHTML='';ST={u:{},sims:[]};save(ST);progress()}};
 }
 
 home();
