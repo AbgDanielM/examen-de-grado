@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "Examen de Grado",
-  "short_name": "Examen de Grado",
+  "name": "GradoQuiz: Examen de Grado",
+  "short_name": "GradoQuiz",
   "description": "Ensayos de alternativas, definiciones legales y casos prácticos de Derecho Civil y Procesal para preparar el examen de grado. Plataforma independiente.",
   "start_url": "./",
   "scope": "./",
@@ -14,22 +14,23 @@
   ],
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "icon-192.png?v=2",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icon-512.png",
+      "src": "icon-512.png?v=2",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icon-maskable-512.png",
+      "src": "icon-maskable-512.png?v=2",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
     }
-  ]
+  ],
+  "orientation": "portrait"
 }
